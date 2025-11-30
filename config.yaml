@@ -1,0 +1,62 @@
+database:
+  path: "./data/banknotes.db"
+
+dataset:
+  source_dir: "./manual"
+  output_dir: "./dataset"
+  train_ratio: 0.8
+
+model:
+  input_size: 640
+  batch_size: 16
+  epochs: 100
+  learning_rate: 0.001
+  classes:
+    - "0"
+    - "1"
+    - "2"
+    - "3"
+    - "4"
+    - "5"
+    - "6"
+    - "7"
+    - "8"
+    - "9"
+    - "А"
+    - "Б"
+    - "В"
+    - "Г"
+    - "Д"
+    - "Е"
+    - "Ё"
+    - "Ж"
+    - "З"
+    - "И"
+    - "Й"
+    - "К"
+    - "Л"
+    - "М"
+    - "Н"
+    - "О"
+    - "П"
+    - "Р"
+    - "С"
+    - "Т"
+    - "У"
+    - "Ф"
+    - "Х"
+    - "Ц"
+    - "Ч"
+    - "Ш"
+    - "Щ"
+    - "Ъ"
+    - "Ы"
+    - "Ь"
+    - "Э"
+    - "Ю"
+    - "Я"
+
+web:
+  port: 8080
+  upload_dir: "./uploads"
+  model_path: "./models/best.pt"

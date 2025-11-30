@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banknote Recognition System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .stat-card { background: #f5f5f5; padding: 15px; border-radius: 5px; text-align: center; }
+        .btn { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 Система распознавания банкнот</h1>
+        
+        <div class="section">
+            <h2>📊 Статистика</h2>
+            <div id="stats" class="stats-grid">
+                <!-- Статистика будет загружена через JavaScript -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 Управление изображениями</h2>
+            <button class="btn" onclick="prepareDataset()">Подготовить датасет</button>
+            <button class="btn" onclick="loadImages()">Обновить список изображений</button>
+        </div>
+
+        <div class="section">
+            <h2>🖼️ Загрузка изображения</h2>
+            <input type="file" id="fileInput" accept="image/*">
+            <button class="btn" onclick="uploadImage()">Загрузить и распознать</button>
+        </div>
+
+        <div class="section">
+            <h2>📋 Изображения в базе</h2>
+            <div id="imagesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Загрузка статистики
+        async function loadStats() {
+            try {
+                const response = await fetch('/recognition-stats');
+                const stats = await response.json();
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <h3>${stats.total_recognition || 0}</h3>
+                        <p>Всего распознаваний</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.unique_images || 0}</h3>
+                        <p>Уникальных изображений</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${(stats.avg_confidence || 0).toFixed(3)}</h3>
+                        <p>Средняя уверенность</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        // Подготовка датасета
+        async function prepareDataset() {
+            try {
+                const response = await fetch('/prepare-dataset', { method: 'POST' });
+                const result = await response.json();
+                alert(`Подготовлено ${result.processed_count} изображений`);
+                loadStats();
+            } catch (error) {
+                console.error('Ошибка подготовки датасета:', error);
+            }
+        }
+
+        // Загрузка изображений
+        async function loadImages() {
+            try {
+                const response = await fetch('/images');
+                const data = await response.json();
+                
+                let html = '<table border="1" style="width: 100%;"><tr><th>ID</th><th>Файл</th><th>Страна</th><th>Номинал</th><th>Серийный номер</th></tr>';
+                
+                data.images.forEach(img => {
+                    html += `<tr>
+                        <td>${img.id}</td>
+                        <td>${img.original_name}</td>
+                        <td>${img.country || '-'}</td>
+                        <td>${img.denomination || '-'}</td>
+                        <td>${img.serial_number || '-'}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                document.getElementById('imagesList').innerHTML = html;
+            } catch (error) {
+                console.error('Ошибка загрузки изображений:', error);
+            }
+        }
+
+        // Загрузка изображения
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Выберите файл');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                //alert(`Изображение распознано: ${result.result.serial_number} (уверенность: ${result.result.confidence.toFixed(3)})`);
+                loadStats();
+                loadImages();
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadImages();
+        });
+    </script>
+</body>
+</html>
